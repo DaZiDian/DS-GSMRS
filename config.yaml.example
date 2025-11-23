@@ -1,0 +1,190 @@
+# ============================================
+# DS-GSMRS 配置文件示例
+# ============================================
+# 复制此文件为 config.yaml 并填入实际配置值
+# 注意：生产环境请确保配置文件权限安全，不要提交到版本控制
+
+# ============================================
+# 服务器配置
+# ============================================
+server:
+  # 服务监听端口
+  # 默认: 3000
+  # 如果端口被占用，可以修改为其他端口（如 3001, 8080 等）
+  port: 3000
+  
+  # 是否启用 HTTPS
+  # 默认: false
+  # 注意：建议通过 Nginx/Caddy/Cloudflare 等反向代理实现 HTTPS
+  # 直接在此启用 HTTPS 需要配置 SSL 证书
+  https: false
+  
+  # IP 白名单（可选）
+  # 如果为空数组 []，则允许所有 IP 访问
+  # 如果配置了 IP 列表，只有列表中的 IP 可以访问服务
+  # 支持 IPv4 和 IPv6 格式
+  # 示例：
+  #   - "127.0.0.1"      # 本地 IPv4
+  #   - "::1"            # 本地 IPv6
+  #   - "192.168.1.100"  # 局域网 IP
+  ip_whitelist:
+    - "127.0.0.1"
+    - "::1"
+
+# ============================================
+# 安全配置
+# ============================================
+security:
+  # 是否启用 HMAC 签名验证
+  # 默认: true
+  # 启用后，所有 Webhook 请求必须包含正确的 HMAC 签名
+  # GitHub Webhook 会自动发送签名，Telegram 需要手动配置
+  # 参考文档：
+  #   - GitHub: https://docs.github.com/en/webhooks/using-webhooks/validating-webhook-deliveries
+  #   - Telegram: https://core.telegram.org/bots/api#setwebhook
+  enable_hmac: true
+  
+  # HMAC 密钥
+  # ⚠️ 重要：生产环境必须修改为强随机字符串！
+  # 生成方式：
+  #   - Linux/Mac: openssl rand -hex 32
+  #   - Windows PowerShell: -join ((48..57) + (65..90) + (97..122) | Get-Random -Count 32 | % {[char]$_})
+  #   - 在线工具: https://www.random.org/strings/
+  # 此密钥需要与 GitHub Webhook Secret 保持一致
+  # 长度建议：至少 32 个字符
+  hmac_secret: "your_hmac_secret_here_change_this_in_production"
+  
+  # 是否自动隐藏敏感信息
+  # 默认: true
+  # 启用后，会自动隐藏消息中的 Token、密码、邮箱、电话等敏感信息
+  # 隐藏格式示例：abcd1234 -> ab****34
+  hide_sensitive: true
+  
+  # 速率限制配置
+  rate_limit:
+    # 时间窗口内允许的最大请求数
+    # 默认: 100
+    # 超过此限制的请求将返回 429 Too Many Requests
+    max: 100
+    
+    # 时间窗口（毫秒）
+    # 默认: 60000 (1分钟)
+    # 例如：max: 100, window_ms: 60000 表示每分钟最多 100 个请求
+    window_ms: 60000
+
+# ============================================
+# Telegram Bot 配置
+# ============================================
+telegram:
+  # Telegram Bot Token
+  # 获取方式：
+  #   1. 在 Telegram 中搜索 @BotFather
+  #   2. 发送 /newbot 命令创建新 Bot
+  #   3. 按照提示设置 Bot 名称和用户名
+  #   4. BotFather 会返回 Bot Token（格式：123456789:ABCdefGHIjklMNOpqrsTUVwxyz）
+  # 官方文档：https://core.telegram.org/bots/tutorial
+  # BotFather: https://t.me/BotFather
+  token: "YOUR_TELEGRAM_BOT_TOKEN"
+  
+  # 是否启用 Telegram 服务
+  # 设置为 false 可禁用 Telegram 功能
+  enable: true
+  
+  # 默认目标聊天 ID
+  # 消息将发送到此聊天（群组或频道）
+  # 获取方式：
+  #   1. 将 Bot 添加到目标群组/频道
+  #   2. 在群组中发送一条消息
+  #   3. 访问：https://api.telegram.org/bot<YOUR_BOT_TOKEN>/getUpdates
+  #   4. 在返回的 JSON 中找到 "chat":{"id":-100123456789}，这就是聊天 ID
+  #   5. 或者使用 @userinfobot 在群组中获取
+  # 注意：
+  #   - 群组 ID 通常是负数（如 -100123456789）
+  #   - 频道 ID 也是负数
+  #   - 个人聊天 ID 是正数
+  # 参考：https://core.telegram.org/bots/api#chat
+  default_target_chat: -100123456789
+
+# ============================================
+# GitHub 配置
+# ============================================
+github:
+  # GitHub Personal Access Token (PAT)
+  # 获取方式：
+  #   1. 登录 GitHub，进入 Settings
+  #   2. 点击左侧 Developer settings
+  #   3. 选择 Personal access tokens → Tokens (classic)
+  #   4. 点击 Generate new token (classic)
+  #   5. 设置 Token 名称和过期时间
+  #   6. 选择权限（至少需要 repo 权限）：
+  #      - repo (完整仓库访问权限)
+  #      - 或 issues:write (仅 Issue 相关权限)
+  #   7. 点击 Generate token
+  #   8. ⚠️ 重要：立即复制 Token，离开页面后将无法再次查看
+  # 官方文档：https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token
+  # 创建链接：https://github.com/settings/tokens/new
+  token: "YOUR_GITHUB_TOKEN"
+  
+  # 是否启用 GitHub 服务
+  # 设置为 false 可禁用 GitHub 功能
+  enable: true
+  
+  # 目标仓库（格式：owner/repo）
+  # 示例：
+  #   - "octocat/Hello-World"
+  #   - "your-username/your-repo"
+  # 消息将发送到此仓库的 Issue 中
+  repo: "your/repo"
+  
+  # 目标 Issue 编号
+  # 消息将作为评论发布到此 Issue
+  # 如果 Issue 不存在，需要先创建
+  # 创建 Issue：在仓库页面点击 Issues → New Issue
+  issue_number: 1
+
+# ============================================
+# 邮件服务配置
+# ============================================
+mail:
+  # 是否启用邮件服务
+  # 设置为 false 可禁用邮件功能
+  enable: false
+  
+  # SMTP 服务器配置
+  smtp:
+    # SMTP 服务器地址
+    # 常见邮件服务商 SMTP 地址：
+    #   - Gmail: smtp.gmail.com
+    #   - QQ 邮箱: smtp.qq.com
+    #   - 163 邮箱: smtp.163.com
+    #   - Outlook: smtp-mail.outlook.com
+    #   - 企业邮箱: 咨询你的 IT 管理员
+    # 参考：https://nodemailer.com/smtp/
+    host: smtp.example.com
+    
+    # SMTP 端口
+    # 常见端口：
+    #   - 465 (SSL/TLS)
+    #   - 587 (STARTTLS)
+    #   - 25 (不推荐，可能被阻止)
+    # 通常 secure: true 使用 465，secure: false 使用 587
+    port: 465
+    
+    # 是否使用 SSL/TLS
+    # true: 使用 SSL/TLS（端口通常为 465）
+    # false: 使用 STARTTLS（端口通常为 587）
+    secure: true
+    
+    # SMTP 登录用户名（通常是邮箱地址）
+    user: your@example.com
+    
+    # SMTP 登录密码
+    # ⚠️ 注意：某些邮件服务商需要使用"应用专用密码"而不是普通密码
+    # Gmail 应用密码：https://support.google.com/accounts/answer/185833
+    # QQ 邮箱授权码：https://service.mail.qq.com/cgi-bin/help?subtype=1&&id=28&&no=1001256
+    # 163 邮箱授权码：https://help.mail.163.com/faqDetail.do?code=d7a5dc8471cd0c0e8b4b8f4f8e49998b374173cfe9171305fa1ce630d7f68ac2c
+    pass: "password"
+  
+  # 收件人邮箱地址
+  # 所有消息将发送到此邮箱
+  to: admin@example.com
